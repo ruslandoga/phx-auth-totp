@@ -30,7 +30,6 @@ defmodule AppWeb.Router do
 
   # Enable Swoosh mailbox preview in development
   if Application.compile_env(:app, :dev_routes) do
-
     scope "/dev" do
       pipe_through :browser
 
