@@ -45,12 +45,36 @@
         fill="#FD4F00"
       />
     </svg>
-    <h1 class="mt-10 flex items-center text-sm font-semibold leading-6 text-brand">
-      Phoenix Framework
-      <small class="ml-3 rounded-full bg-brand/5 px-2 text-[0.8125rem] font-medium leading-6">
-        v1.7
-      </small>
-    </h1>
+    <div class="mt-10 flex items-center justify-between">
+      <h1 class="flex items-center text-sm font-semibold leading-6 text-brand">
+        Phoenix Framework
+        <small class="ml-3 rounded-full bg-brand/5 px-2 text-[0.8125rem] font-medium leading-6">
+          v1.7
+        </small>
+      </h1>
+      <ul class="flex items-center gap-4">
+        <%= if @current_user do %>
+          <li>
+            <%= @current_user.email %>
+          </li>
+          <li class="text-[0.8125rem] font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
+            <.link href={~p"/users/settings"}>Settings</.link>
+          </li>
+          <li class="text-[0.8125rem] font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
+            <.link href={~p"/users/log_out"} method="delete">Log out</.link>
+          </li>
+        <% else %>
+          <li class="text-[0.8125rem] font-semibold leading-6 text-zinc-900 hover:text-zinc-700">
+            <.link href={~p"/users/log_in"}>Log in</.link>
+          </li>
+          <li class="rounded-lg bg-zinc-100 px-2 py-1 text-[0.8125rem] font-semibold leading-6 text-zinc-900 hover:bg-zinc-200/80 active:text-zinc-900/70">
+            <.link href={~p"/users/register"}>
+              Register <span aria-hidden="true">&rarr;</span>
+            </.link>
+          </li>
+        <% end %>
+      </ul>
+    </div>
     <p class="mt-4 text-[2rem] font-semibold leading-10 tracking-tighter text-zinc-900">
       Peace of mind from prototype to production.
     </p>
