@@ -4,4 +4,7 @@ CREATE UNIQUE INDEX "users_email_index" ON "users" ("email");
 CREATE TABLE IF NOT EXISTS "users_tokens" ("id" INTEGER PRIMARY KEY, "user_id" INTEGER NOT NULL CONSTRAINT "users_tokens_user_id_fkey" REFERENCES "users"("id") ON DELETE CASCADE, "token" BLOB NOT NULL, "context" TEXT NOT NULL, "sent_to" TEXT, "inserted_at" TEXT NOT NULL) STRICT;
 CREATE INDEX "users_tokens_user_id_index" ON "users_tokens" ("user_id");
 CREATE UNIQUE INDEX "users_tokens_context_token_index" ON "users_tokens" ("context", "token");
+CREATE TABLE IF NOT EXISTS "users_totps" ("id" INTEGER PRIMARY KEY, "user_id" INTEGER NOT NULL CONSTRAINT "users_totps_user_id_fkey" REFERENCES "users"("id") ON DELETE CASCADE, "secret" BLOB, "backup_codes" TEXT, "inserted_at" TEXT NOT NULL, "updated_at" TEXT NOT NULL) STRICT;
+CREATE UNIQUE INDEX "users_totps_user_id_index" ON "users_totps" ("user_id");
 INSERT INTO schema_migrations VALUES(20221208135151,'2022-12-08T14:07:36');
+INSERT INTO schema_migrations VALUES(20221208143423,'2022-12-08T14:35:23');
