@@ -5,8 +5,7 @@ defmodule App.Accounts do
 
   import Ecto.Query, warn: false
   alias App.Repo
-
-  alias App.Accounts.{User, UserToken, UserNotifier}
+  alias App.Accounts.{User, UserToken, UserNotifier, UserTOTP}
 
   ## Database getters
 
@@ -212,6 +211,93 @@ defmodule App.Accounts do
     |> case do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
+    end
+  end
+
+  ## TOTP
+
+  @doc """
+  Gets the %UserTOTP{} entry, if any.
+  """
+  def get_user_totp(user) do
+    Repo.get_by(UserTOTP, user_id: user.id)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing user TOTP.
+
+  ## Examples
+
+      iex> change_user_totp(%UserTOTP{})
+      %Ecto.Changeset{data: %UserTOTP{}}
+
+  """
+  def change_user_totp(totp, attrs \\ %{}) do
+    UserTOTP.changeset(totp, attrs)
+  end
+
+  @doc """
+  Updates the TOTP secret.
+
+  The secret is a random 20 bytes binary that is used to generate the QR Code to
+  enable 2FA using auth applications. It will only be updated if the OTP code
+  sent is valid.
+
+  ## Examples
+
+      iex> upsert_user_totp(%UserTOTP{secret: <<...>>}, code: "123456")
+      {:ok, %Ecto.Changeset{data: %UserTOTP{}}}
+
+  """
+
+  def upsert_user_totp(totp, attrs) do
+    UserTOTP.changeset(totp, attrs)
+    |> UserTOTP.ensure_backup_codes()
+    # If we are updating, let's make sure the secret
+    # in the struct propagates to the changeset.
+    |> Ecto.Changeset.force_change(:secret, totp.secret)
+    |> Repo.insert_or_update()
+  end
+
+  @doc """
+  Regenerates the user backup codes for totp.
+
+  ## Examples
+
+      iex> regenerate_user_totp_backup_codes(%UserTOTP{})
+      %UserTOTP{backup_codes: [...]}
+
+  """
+  def regenerate_user_totp_backup_codes(totp) do
+    Ecto.Changeset.change(totp)
+    |> UserTOTP.regenerate_backup_codes()
+    |> Repo.update!()
+  end
+
+  @doc """
+  Disables the TOTP configuration for the given user.
+  """
+  def delete_user_totp(user_totp) do
+    Repo.delete!(user_totp)
+    :ok
+  end
+
+  @doc """
+  Validates if the given TOTP code is valid.
+  """
+  def validate_user_totp(user, code) do
+    totp = Repo.get_by!(UserTOTP, user_id: user.id)
+
+    cond do
+      UserTOTP.valid_totp?(totp, code) ->
+        :valid_totp
+
+      changeset = UserTOTP.validate_backup_code(totp, code) ->
+        totp = Repo.update!(changeset)
+        {:valid_backup_code, Enum.count(totp.backup_codes, &is_nil(&1.used_at))}
+
+      true ->
+        :invalid
     end
   end
 

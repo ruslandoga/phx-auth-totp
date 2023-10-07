@@ -61,6 +61,10 @@ defmodule AppWeb.Router do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
     end
+
+    # TODO make live
+    get "/users/totp", UserTOTPController, :new
+    post "/users/totp", UserTOTPController, :create
   end
 
   scope "/", AppWeb do
